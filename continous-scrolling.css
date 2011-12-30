@@ -1,0 +1,37 @@
+/* final size 50px; */
+li.scroll-item {
+	height: 20px;
+	padding: 10px;
+	margin: 5px;
+	background-color: green;
+}
+
+/*
+	- respect colapsing margins in total height calculation
+*/
+.scroll-container {
+	height: 185px;
+	width: 300px; 
+	overflow: auto; 
+	padding: 0;
+	margin: 0;
+}
+
+.scroll-list {
+	list-style: none;
+	margin: 0px;
+}
+
+.scroll-outer-container {
+	padding: 10px;
+  border: solid 1px black;
+  width: 300px;
+}
+
+.chunk {
+	height: 175px;
+}
+
+.chunk-first {
+	height: 265px;
+}
