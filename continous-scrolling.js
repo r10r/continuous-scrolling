@@ -1,13 +1,17 @@
-// load first chunk
-loadChunk(0, 6);
-
-// TODO implement partial chunk loading and events queue
+/* TODO 
+ - implement partial chunk loading and events queue
+ - proper encapsulation
+*/
 
 // bind scrolling function to all continuous scrolling containers
 $(".scroll-container").bind("scroll", function(){preloadElements(this);});
 
-var initialChunkHeight = 265;
-var chunkHeight = 185;
+// calculate the chunk heights
+var initialChunkCollapsedMargin = (initialItemsToLoad - 1) * itemMargin
+var initialChunkHeight = (initialItemsToLoad * itemHeight) - initialChunkCollapsedMargin;
+var chunkCollapsedMargin = (itemsPerChunk -1) * itemMargin;
+var chunkHeight = (itemsPerChunk * itemHeight) - chunkCollapsedMargin; 
+
 var initialOffset = initialChunkHeight - chunkHeight;
 var previousLoadedChunk = 0;
 
@@ -24,22 +28,22 @@ function preloadElements(scrollContainer) {
 	if (currentChunk > previousLoadedChunk) {
 		console.log("scrollbar position: " + scrollBarPosition);
 		// for testing purposes, use setTimeout to simulate HTTP transmission delay
-		setTimeout(function(){ loadChunk(currentChunk, 4); }, 500);
-//		loadChunk(currentChunk, 4);
+		setTimeout(function(){ loadChunk(currentChunk, itemsPerChunk); }, 500);
+//		loadChunk(currentChunk, itemsPerChunk);
 		previousLoadedChunk = currentChunk;
 	}
 }
 
 function loadChunk(chunkIndex, itemCount) {
-		var chunkContainerSelector = '.chunk[data-index="' + chunkIndex + '"]';
-	  // retrieve the chunk container
-	  console.log("loading chunk container: " + chunkContainerSelector);
+	var chunkContainerSelector = '.chunk[data-index="' + chunkIndex + '"]';
+	 // retrieve the chunk container
+	 console.log("loading chunk container: " + chunkContainerSelector);
 	
-		// replace content of chunk container
-		var chunkContainer = $(chunkContainerSelector);
+	// replace content of chunk container
+	var chunkContainer = $(chunkContainerSelector);
 		
-		// execute the callback that returns the chunks content
-		chunkContainer.append(loadChunkContent(chunkIndex, itemCount));
+	// execute the callback that returns the chunks content
+	chunkContainer.append(loadChunkContent(chunkIndex, itemCount));
 }
 
 function loadChunkContent(chunkIndex, items) {
