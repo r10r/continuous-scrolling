@@ -19,7 +19,7 @@ var loadingChunks = []; // the chunks currently loading
 
 function preloadElements(scrollContainer) {
 	var chunkIndex = getChunkIndex(scrollContainer);
-	console.log("chunk " + chunkIndex); 
+	console.log("selected chunk: " + chunkIndex); 
 	
 	var isLoading = _.indexOf(loadingChunks, chunkIndex) > -1;
 	var isLoaded = _.indexOf(loadedChunks, chunkIndex) > -1;
@@ -53,14 +53,12 @@ function getChunkIndex(scrollContainer) {
 }
 
 function loadChunk(chunkIndex, itemCount) {
-	var chunkContainerSelector = '.chunk[data-index="' + chunkIndex + '"]';
 	 // retrieve the chunk container
-	 console.log("loading chunk container: " + chunkContainerSelector);
-	
-	// replace content of chunk container
+	var chunkContainerSelector = '.chunk[data-index="' + chunkIndex + '"]';
+	console.log("loading chunk container for selector: " + chunkContainerSelector);
 	var chunkContainer = $(chunkContainerSelector);
 	
-	// execute the callback that returns the chunks content
+	// append the callback return value to the chunk container
 	chunkContainer.append(loadChunkContent(chunkIndex, itemCount));
 
 	// mark the chunk as loaded
