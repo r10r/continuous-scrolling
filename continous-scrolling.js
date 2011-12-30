@@ -1,5 +1,6 @@
 /* TODO 
  - implement partial chunk loading and events queue
+ - cancel loading of chunk if the scroll position changes to fast
  - proper encapsulation
 */
 
@@ -7,13 +8,14 @@
 $(".scroll-container").bind("scroll", function(){preloadElements(this);});
 
 // calculate the chunk heights
-var initialChunkCollapsedMargin = (initialItemsToLoad - 1) * itemMargin
-var initialChunkHeight = (initialItemsToLoad * itemHeight) - initialChunkCollapsedMargin;
-var chunkCollapsedMargin = (itemsPerChunk -1) * itemMargin;
-var chunkHeight = (itemsPerChunk * itemHeight) - chunkCollapsedMargin; 
+var initialChunkCollapsedMargins = (initialItemsToLoad - 1) * itemMargin
+var initialChunkHeight = (initialItemsToLoad * itemHeight) - initialChunkCollapsedMargins;
+var chunkCollapsedMargins = (itemsPerChunk -1) * itemMargin;
+var chunkHeight = (itemsPerChunk * itemHeight) - chunkCollapsedMargins; 
+var initialChunkOffset = initialChunkHeight - chunkHeight;
 
-var initialOffset = initialChunkHeight - chunkHeight;
-var previousLoadedChunk = 0;
+var loadedChunks = []; // the chunks already loaded
+var loadingChunks = []; // the chunks currently loading
 
 function preloadElements(scrollContainer) {
 	
@@ -23,14 +25,16 @@ function preloadElements(scrollContainer) {
 	// increment active chunk by one since the first chunk is initially loaded
 	// remove the offset of the first chunk
 	// toFixed returns a string, therefore we have to call parseInt to make to calculation work
-	var currentChunk = 1 + parseInt(((scrollBarPosition - initialOffset) / chunkHeight).toFixed(0));
+	var chunkIndex = 1 + parseInt(((scrollBarPosition - initialChunkOffset) / chunkHeight).toFixed(0));
 	
-	if (currentChunk > previousLoadedChunk) {
+	var isLoading = _.indexOf(loadingChunks, chunkIndex) > -1;
+	var isLoaded = _.indexOf(loadedChunks, chunkIndex) > -1;
+	
+	if (!isLoading && !isLoaded) {
+		loadingChunks.push(chunkIndex);
 		console.log("scrollbar position: " + scrollBarPosition);
 		// for testing purposes, use setTimeout to simulate HTTP transmission delay
-		setTimeout(function(){ loadChunk(currentChunk, itemsPerChunk); }, 500);
-//		loadChunk(currentChunk, itemsPerChunk);
-		previousLoadedChunk = currentChunk;
+		setTimeout(function(){ loadChunk(chunkIndex, itemsPerChunk); }, 500);
 	}
 }
 
@@ -41,9 +45,14 @@ function loadChunk(chunkIndex, itemCount) {
 	
 	// replace content of chunk container
 	var chunkContainer = $(chunkContainerSelector);
-		
+	
 	// execute the callback that returns the chunks content
 	chunkContainer.append(loadChunkContent(chunkIndex, itemCount));
+
+	// mark the chunk as loaded
+	loadedChunks.push(chunkIndex);
+	loadingChunks = _.without(loadingChunks, chunkIndex);
+	console.log("loaded chunks: " + loadedChunks);
 }
 
 function loadChunkContent(chunkIndex, items) {
