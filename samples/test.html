@@ -6,6 +6,30 @@
 	<script type="text/javascript" charset="utf-8" src="../public/underscore.js"></script>
 	<script type="text/javascript" charset="utf-8" src="../public/backbone.js"></script>
 	<link rel="stylesheet" href="test.css"></link>
+<!--
+	<style type="text/css">
+	.scroll-container {
+		height: 185;
+	}
+	.chunk {
+		height: 175px;
+	}
+	.chunk-first {
+		height: 265px;
+	}
+</style>
+-->
+<style type="text/css">
+	.scroll-container {
+		height: 370px;
+	}
+	.chunk {
+		height: 355px;
+	}
+	.chunk-first {
+		height: 450px;
+	}
+</style>
 </head>
 <body>
     <div class="scroll-outer-container">
@@ -13,22 +37,18 @@
 				<ul class="scroll-list">
 					<div data-index="0" class="chunk chunk-first">
 				  </div>
-				   <div data-index="1" class="chunk">
-				   </div>
-				   <div data-index="2" class="chunk">
-				   </div>
-				   <div data-index="3" class="chunk">
-				   </div>
-				   <div data-index="4" class="chunk">
-				   </div>
 				</ul>
 		  </div>
     </div>
 </body>
+
 <script type="text/javascript" charset="utf-8">
+	var itemTemplate = '<% _.each(items, function(item) { %> <div data-index="<%= item %>" class="chunk"></div> <% }); %>';
+	$(".scroll-list").append(_.template(itemTemplate, {'items' : _.range(1, 100)}));
+
 	// TODO resize the container dynamically
-	var itemsPerChunk = 4;
-	var initialItemsToLoad = 6
+	var itemsPerChunk = 8;
+	var initialItemsToLoad = 16;
 	var itemHeight = 50; // includes margins
 	var itemMargin = 5;
 	var loadDelay = 100; // the time the active chunk must not change
