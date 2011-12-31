@@ -17,44 +17,45 @@ var initialChunkOffset = initialChunkHeight - chunkHeight;
 var loadedChunks = []; // the chunks already loaded
 var loadingChunks = []; // the chunks currently loading
 
+var simulationDelay = 500;
+
 function preloadElements(scrollContainer) {
 	var chunkIndex = getChunkIndex(scrollContainer);
 	console.log("selected chunk: " + chunkIndex); 
-	
-	var isLoading = _.indexOf(loadingChunks, chunkIndex) > -1;
-	var isLoaded = _.indexOf(loadedChunks, chunkIndex) > -1;
-	
-	if (isChunkReadyToLoad(chunkIndex)) {
-		loadingChunks.push(chunkIndex);
-		setTimeout(function() {
-				if ((chunkIndex - getChunkIndex(scrollContainer)) == 0) {
-					// for testing purposes, use setTimeout to simulate HTTP transmission delay
-					
-					// TODO load previous,current and next chunk at once, use smaller chunks?
-					var previousChunk = chunkIndex -1;
-					var nextChunk = chunkIndex + 1;
-					if (isChunkReadyToLoad(previousChunk)) {
-						setTimeout(function(){ loadChunk(previousChunk, itemsPerChunk); }, 500);
-					}
-					if (isChunkReadyToLoad(nextChunk)) {
-						setTimeout(function(){ loadChunk(nextChunk, itemsPerChunk); }, 500);
-					}
 
-					setTimeout(function(){ loadChunk(chunkIndex, itemsPerChunk); }, 500);
-				} else {
-					// remove from loading chunks again
-					loadingChunks = _.without(loadingChunks, chunkIndex);
-					console.log("loading timeout for chunk: " + chunkIndex);
-				}
-			}, loadDelay);
+	setTimeout(function() {
+			if (chunkIndex == getChunkIndex(scrollContainer)) {
+				safeLoad(chunkIndex - 1);
+				safeLoad(chunkIndex);
+				safeLoad(chunkIndex + 1);
+			} else {
+				console.log("loading timeout for chunk: " + chunkIndex);
+			}
+		}, loadDelay);
+}
+
+function safeLoad(chunkIndex) {
+	if (isNotLoaded(chunkIndex)) {
+		loadingChunks.push(chunkIndex);
+		// for testing purposes, use setTimeout to simulate HTTP transmission delay
+		setTimeout(function(){ loadChunk(chunkIndex, itemsPerChunk); }, simulationDelay);					
 	}
 }
 
-function isChunkReadyToLoad(chunkIndex) {
-	var validIndex = chunkIndex > -1;
-	var isLoading = _.indexOf(loadingChunks, chunkIndex) > -1;
-	var isLoaded = _.indexOf(loadedChunks, chunkIndex) > -1;
-	return validIndex && !isLoading && !isLoaded;
+function isNotLoaded(chunkIndex) {
+	if (chunkIndex < 0) {
+		return false;
+	} else {
+		return !isLoading(chunkIndex) && !isLoaded(chunkIndex);
+	}
+}
+
+function isLoaded(chunkIndex) {
+	return _.indexOf(loadedChunks, chunkIndex) > -1;
+}
+
+function isLoading(chunkIndex) {
+	return _.indexOf(loadingChunks, chunkIndex) > -1;
 }
 
 function getChunkIndex(scrollContainer) {
@@ -62,12 +63,18 @@ function getChunkIndex(scrollContainer) {
 	//var scrollContainerHeight = scrollContainer.clientHeight;
 
 	var scrollBarPosition = scrollContainer.scrollTop; // position of scrollbar
-	console.log("scrollbar position: " + scrollBarPosition);
+	//console.log("scrollbar position: " + scrollBarPosition);
 
 	// increment active chunk by one since the first chunk is initially loaded
 	// remove the offset of the first chunk
 	// toFixed returns a string, therefore we have to call parseInt to make to calculation work
-	return parseInt(((scrollBarPosition - initialChunkOffset) / chunkHeight).toFixed(0));
+	var diff = scrollBarPosition - initialChunkOffset;
+	
+	if (diff > 0) {
+		return parseInt((diff / chunkHeight).toFixed(0));
+	} else {
+		return 0;
+	}
 }
 
 function loadChunk(chunkIndex, itemCount) {
@@ -78,11 +85,11 @@ function loadChunk(chunkIndex, itemCount) {
 	
 	// append the callback return value to the chunk container
 	chunkContainer.replaceWith(loadChunkContent(chunkIndex, itemCount));
-
-	// mark the chunk as loaded
+	
+	// remove from loading chunks again
 	loadedChunks.push(chunkIndex);
 	loadingChunks = _.without(loadingChunks, chunkIndex);
-	console.log("loaded chunks: " + loadedChunks);
+	
 }
 
 function loadChunkContent(chunkIndex, items) {
